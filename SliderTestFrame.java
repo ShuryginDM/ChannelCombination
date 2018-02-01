@@ -20,7 +20,7 @@ import javax.imageio.*;
 */
 class SliderTestFrame extends JFrame 
 {
-    public static int rfon = 128, bfon = 128, gfon = 128;
+    public static int rfon = 37, bfon = 128, gfon = 147;
     public static void visit(File dir, File dir0){
         File fr = null;
         File fg = null;
@@ -34,6 +34,7 @@ class SliderTestFrame extends JFrame
         Boolean b_blue = false;
         Boolean b_green = false;
         Boolean b_red = false;
+        Boolean made = false;
         for(File it1 : dir.listFiles()){
             if(it1.isDirectory()){
                 if(it1.getName().compareTo("Ch1") == 0){
@@ -44,13 +45,11 @@ class SliderTestFrame extends JFrame
                             h = imageb.getHeight();
                             b_blue = true;
                             name = it2.getName().substring(0, it2.getName().indexOf('.') - 2);
-                            name += "_combined.png";
                         }catch(IOException e){
                             e.printStackTrace();
                         }
                     }
-                }
-                if(it1.getName().compareTo("Ch2") == 0){
+                }else if(it1.getName().compareTo("Ch2") == 0){
                     for(File it2 : it1.listFiles()){
                         try{
                             imageg = ImageIO.read(it2);
@@ -59,14 +58,12 @@ class SliderTestFrame extends JFrame
                             b_green = true;
                             if(b_blue == false){
                                 name = it2.getName().substring(0, it2.getName().indexOf('.') - 2);
-                                name += "_combined.png";
                             }
                         }catch(IOException e){
                             e.printStackTrace();
                         }
                     }
-                }
-                if(it1.getName().compareTo("c3") == 0){
+                }else if(it1.getName().compareTo("Ch3") == 0){
                     for(File it2 : it1.listFiles()){
                         try{
                             imager = ImageIO.read(it2);
@@ -75,7 +72,6 @@ class SliderTestFrame extends JFrame
                             b_red = true;
                             if(b_blue == false && b_green == false){
                                 name = it2.getName().substring(0, it2.getName().indexOf('.') - 2);
-                                name += "_combined.png";
                             }
                         }catch(IOException e){
                             e.printStackTrace();
@@ -84,8 +80,15 @@ class SliderTestFrame extends JFrame
                 }
                 if(!b_blue && !b_green && !b_red){
                     visit(it1, dir0);
-                }else{
-                    BufferedImage result = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+                }
+       
+            }
+        }
+        if(b_blue | b_green | b_red){
+                   BufferedImage result = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+                   BufferedImage result_r = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+                   BufferedImage result_g = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+                   BufferedImage result_b = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
                     for(int y = 0; y < h; y++){
                         for(int x = 0; x < w; x++){
                             int p = 0;
@@ -103,7 +106,9 @@ class SliderTestFrame extends JFrame
                             }
                             int r = (pr>>16)&0xff;// + (pr>>8)&0xff + pr&0xff);
                             int g = (pg>>8)&0xff;
+                            
                             int b = pb&0xff;
+                            
                             
                             r-=rfon;
                             if(r <= rfon){
@@ -111,6 +116,7 @@ class SliderTestFrame extends JFrame
                             }else{
                                 r+=rfon;
                             }
+                            result_r.setRGB(x,y,r << 16);
                             /*if(g <= gfon){
                                 g = 0;
                             }*/
@@ -120,27 +126,35 @@ class SliderTestFrame extends JFrame
                             }else{
                                 g+=gfon;
                             }
-                            
+                            result_g.setRGB(x,y,g << 8);
                             b-=bfon;
                             if(b <= 0){
                                 b = 0;
                             }else{
                                 b+=bfon;
                             }
+                            result_b.setRGB(x,y,b);
                             p = (r<<16) | (g<<8) | b;
                             result.setRGB(x, y, p);
                         }
                     }
 
-                    File g = new File(dir0.getAbsolutePath() + '/' + name);
-                    String format = "PNG";
-                    try{
-                        ImageIO.write(result, format, g);
-                    }catch(IOException e){
-                        e.printStackTrace();
+                    if(made == false){
+                        File comb = new File(dir0.getAbsolutePath() + '/' + name + "_combined.png");
+                        File red = new File(dir0.getAbsolutePath() + '/' + name + "_red.png");
+                        File green = new File(dir0.getAbsolutePath() + '/' + name + "_green.png");
+                        File blue = new File(dir0.getAbsolutePath() + '/' + name + "_blue.png");
+                        String format = "PNG";
+                        try{
+                            ImageIO.write(result, format, comb);
+                            ImageIO.write(result_r, format, red);
+                            ImageIO.write(result_g, format, green);
+                            ImageIO.write(result_b, format, blue);
+                            made = true;
+                        }catch(IOException e){
+                            e.printStackTrace();
+                        }
                     }
-                }
-            }
         }
     }
     
@@ -154,9 +168,9 @@ class SliderTestFrame extends JFrame
 		setResizable(false);
 		sliderPanel = new JPanel();
 		sliderPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		JLabel rlab = new JLabel("0");
-                JLabel glab = new JLabel("145");
-                JLabel blab = new JLabel("135");
+		JLabel rlab = new JLabel(Integer.toString(rfon));
+                JLabel glab = new JLabel(Integer.toString(gfon));
+                JLabel blab = new JLabel(Integer.toString(bfon));
                 
                 
                 
@@ -201,7 +215,7 @@ class SliderTestFrame extends JFrame
 		JPanel panel = new JPanel();
 		// Добавление регулятора с числовыми метками.
 		
-		JSlider rslider = new JSlider(0, 255, 0);
+		JSlider rslider = new JSlider(0, 255, rfon);
 		rslider.setPaintTicks(true);
 		rslider.setPaintLabels(true);
 		rslider.setMajorTickSpacing(50);
@@ -213,7 +227,7 @@ class SliderTestFrame extends JFrame
                 sliderPanel.add(panel);
                 
                 
-                JSlider gslider = new JSlider(0, 255, 145);
+                JSlider gslider = new JSlider(0, 255, gfon);
 		gslider.setPaintTicks(true);
 		gslider.setPaintLabels(true);
 		gslider.setMajorTickSpacing(50);
@@ -225,7 +239,7 @@ class SliderTestFrame extends JFrame
                 panel.add(glab);
                 sliderPanel.add(panel);
                 
-                JSlider bslider = new JSlider(0, 255, 135);
+                JSlider bslider = new JSlider(0, 255, bfon);
 		bslider.setPaintTicks(true);
 		bslider.setPaintLabels(true);
 		bslider.setMajorTickSpacing(50);
